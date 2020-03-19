@@ -18,14 +18,14 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-@app.post("/signup")
+@app.post("/SignUp")
 def read_item(q:Item):
     try:
         record.insert_one({"_id":q.email,"password":q.password,"msg":[]})
         return {"status": "True"}
     except:
         return {"status": "False"}
-@app.post("/login")
+@app.post("/Login")
 def read_item(q:Item):
     try:
         y=jwt.encode({"email":q.email},"mks")
