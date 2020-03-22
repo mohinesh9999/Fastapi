@@ -1,60 +1,13 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from pymongo import MongoClient
-import jwt
-class Item(BaseModel):
-    email: str
-    password: str
-class Item1(BaseModel):
-    token: str
-    msg: str
-class Item2(BaseModel):
-    token: str
+from fastapi import Depends, FastAPI, Header, HTTPException
 
-client=MongoClient("mongodb+srv://test:test@cluster0-nc9ml.mongodb.net/test?retryWrites=true&w=majority")
-db=client.get_database('emp')
-record=db.emp_pe
+from routers import index
+
 app = FastAPI()
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-@app.post("/SignUp")
-def read_item(q:Item):
-    try:
-        record.insert_one({"_id":q.email,"password":q.password,"msg":[]})
-        return {"status": "True"}
-    except:
-        return {"status": "False"}
-@app.post("/Login")
-def read_item(q:Item):
-    try:
-        y=jwt.encode({"email":q.email},"mks")
-        x=record.find_one({"_id":q.email,"password":q.password})
-        if(x!=None):
-            return {"status": "True","token":y}
-        else:
-            return {"status": "False"}
-    except:
-        return {"status": "False"}
-@app.post("/msg")
-def read_item(q:Item1):
-    try:
-        y=jwt.decode(q.token,"mks")
-        print(y)
-        x=record.find_one({"_id":y["email"]})
-        x['msg'].append(q.msg)
-        del x['_id']
-        print(x)
-        x=record.update_one({"_id":y["email"]},{"$set":x})
-        return {"status": "True"}
-    except:
-        return {"status": "False"}
-@app.post("/show_msg")
-def read_item(q:Item2):
-    try:
-        y=jwt.decode(q.token,"mks")
-        print(y)
-        x=record.find_one({"_id":y["email"]})
-        return {"status": "True","msg":x['msg']}
-    except:
-        return {"status": "False"}
+
+
+async def get_token_header(x_token: str = Header(...)):
+    if x_token != "fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+
+
+app.include_router(index.app)
